@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModel
 
 class AgendamentoViewModel : ViewModel() {
 
-    var data by mutableStateOf("")
-    var hora by mutableStateOf("")
+    var data by mutableStateOf("Nenhuma data")
+    var hora by mutableStateOf("Nenhum horário")
 
     var nomeConfirmado by mutableStateOf("")
     var opcaoConfirmada by mutableStateOf(false)
@@ -17,4 +17,10 @@ class AgendamentoViewModel : ViewModel() {
     var mostrarDatePicker by mutableStateOf(false)
     var mostrarTimePicker by mutableStateOf(false)
 
+    fun limparAgendamento() {
+        data = "Nenhuma data"
+        hora = "Nenhum horário"
+        nomeConfirmado = ""
+        opcaoConfirmada = false
+    }
 }

@@ -1,6 +1,7 @@
 package br.dev.guisleri.agendamento
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -57,10 +61,17 @@ class MainActivity : ComponentActivity() {
 fun AgendamentoTela(
     viewModel: AgendamentoViewModel = viewModel()
 ) {
+
+    val context = LocalContext.current
+
+    var nome by rememberSaveable { mutableStateOf("") }
+    var opcaoSelecionada by rememberSaveable { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
+            .verticalScroll(rememberScrollState())
             .padding(23.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -89,7 +100,8 @@ fun AgendamentoTela(
         }
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
                 onClick = {
@@ -114,10 +126,35 @@ fun AgendamentoTela(
             ) {
                 Text("Selecionar horário")
             }
-        }
 
-        var nome by rememberSaveable { mutableStateOf("") }
-        var opcaoSelecionada by rememberSaveable { mutableStateOf(false) }
+            Spacer(modifier = Modifier.padding(12.dp))
+
+            Button(
+                onClick = {
+                    if (
+                        viewModel.nomeConfirmado.isBlank() ||
+                        viewModel.data == "Nenhuma data" ||
+                        viewModel.hora == "Nenhum horário"
+                    ) {
+                        Toast.makeText(
+                            context,
+                            "Preencha todos os dados do agendamento!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Agendamento realizado com sucesso!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        viewModel.limparAgendamento()
+                        nome = ""
+                        opcaoSelecionada = false
+                    }
+                }
+            ) { Text("CONFIRMAR AGENDAMENTO") }
+        }
 
         if (viewModel.mostrarDialog) {
             AlertDialog(

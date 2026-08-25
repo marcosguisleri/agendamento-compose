@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import br.dev.guisleri.agendamento.ui.theme.AgendamentoTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -80,7 +82,11 @@ fun AgendamentoTela(
         )
 
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -127,7 +133,7 @@ fun AgendamentoTela(
                 Text("Selecionar horário")
             }
 
-            Spacer(modifier = Modifier.padding(12.dp))
+            Spacer(modifier = Modifier.padding(8.dp))
 
             Button(
                 onClick = {
@@ -152,7 +158,12 @@ fun AgendamentoTela(
                         nome = ""
                         opcaoSelecionada = false
                     }
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.onTertiary
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) { Text("CONFIRMAR AGENDAMENTO") }
         }
 

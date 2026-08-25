@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,24 @@ import androidx.compose.ui.unit.dp
 import br.dev.guisleri.agendamento.ui.theme.AgendamentoTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +52,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgendamentoTela(
     viewModel: AgendamentoViewModel = viewModel()
@@ -44,15 +65,28 @@ fun AgendamentoTela(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Agendamento",
-            style = MaterialTheme.typography.headlineMedium
+            text = "Agendamento", style = MaterialTheme.typography.headlineMedium
         )
 
-        Text("Nome: -")
-        Text("Opção: -")
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Nome: ${viewModel.nomeConfirmado}")
 
-        Text("Data: ${viewModel.data}")
-        Text("Hora: ${viewModel.hora}")
+                Text(
+                    "Deseja receber lembrete? ${
+                        if (viewModel.opcaoConfirmada) "Sim" else "Não"
+                    }"
+                )
+
+                Text("Data: ${viewModel.data}")
+                Text("Hora: ${viewModel.hora}")
+            }
+        }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -60,8 +94,7 @@ fun AgendamentoTela(
             Button(
                 onClick = {
                     viewModel.mostrarDialog = true
-                },
-                modifier = Modifier.fillMaxWidth()
+                }, modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Informar dados")
             }
@@ -69,8 +102,7 @@ fun AgendamentoTela(
             Button(
                 onClick = {
                     viewModel.mostrarDatePicker = true
-                },
-                modifier = Modifier.fillMaxWidth()
+                }, modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Selecionar data")
             }
@@ -78,35 +110,169 @@ fun AgendamentoTela(
             Button(
                 onClick = {
                     viewModel.mostrarTimePicker = true
-                },
-                modifier = Modifier.fillMaxWidth()
+                }, modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Selecionar horário")
             }
         }
+
+        var nome by rememberSaveable { mutableStateOf("") }
+        var opcaoSelecionada by rememberSaveable { mutableStateOf(false) }
 
         if (viewModel.mostrarDialog) {
             AlertDialog(
                 onDismissRequest = {
                     viewModel.mostrarDialog = false
                 },
+
                 title = {
                     Text("Dados do agendamento")
                 },
+
                 text = {
-                    Text("Teste")
+                    Column {
+                        Text("Informe os dados do agendamento")
+
+                        Spacer(modifier = Modifier.padding(8.dp))
+
+                        OutlinedTextField(value = nome, onValueChange = { nome = it }, label = {
+                            Text("Nome")
+                        })
+
+                        Spacer(modifier = Modifier.padding(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Switch(
+                                checked = opcaoSelecionada,
+                                onCheckedChange = { opcaoSelecionada = it },
+                                Modifier.padding(8.dp)
+                            )
+                            Text("Receber lembrete")
+                        }
+                    }
                 },
+
                 confirmButton = {
                     Button(
                         onClick = {
+                            viewModel.nomeConfirmado = nome
+                            viewModel.opcaoConfirmada = opcaoSelecionada
                             viewModel.mostrarDialog = false
                         }
                     ) {
                         Text("Confirmar")
                     }
+                },
+
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            viewModel.mostrarDialog = false
+                        }
+                    ) { Text("Cancelar") }
                 }
             )
         }
+
+        val datePickerState = rememberDatePickerState()
+
+        if (viewModel.mostrarDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = {
+                    viewModel.mostrarDatePicker = false
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val dataMillis = datePickerState.selectedDateMillis
+
+                            if (dataMillis != null) {
+                                val formato = SimpleDateFormat(
+                                    "dd/MM/yyyy",
+                                    Locale.getDefault()
+                                )
+
+                                formato.timeZone = TimeZone.getTimeZone("UTC")
+
+                                viewModel.data = formato.format(Date(dataMillis))
+                            }
+
+                            viewModel.mostrarDatePicker = false
+                        }
+                    ) {
+                        Text("Confirmar")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            viewModel.mostrarDatePicker = false
+                        }
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            ) {
+                DatePicker(
+                    state = datePickerState,
+                    showModeToggle = false
+                )
+            }
+        }
+
+        val timePickerState = rememberTimePickerState()
+
+        if (viewModel.mostrarTimePicker) {
+            AlertDialog(
+                onDismissRequest = {
+                    viewModel.mostrarTimePicker = false
+                },
+
+                title = {
+                    Text("Selecionar horário")
+                },
+
+                text = {
+                    TimePicker(
+                        state = timePickerState
+                    )
+                },
+
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val hora = timePickerState.hour
+                            val minuto = timePickerState.minute
+
+                            viewModel.hora = String.format(
+                                "%02d:%02d",
+                                hora,
+                                minuto
+                            )
+
+                            viewModel.mostrarTimePicker = false
+                        }
+                    ) {
+                        Text("Confirmar")
+                    }
+                },
+
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            viewModel.mostrarTimePicker = false
+                        }
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
     }
 }
 
